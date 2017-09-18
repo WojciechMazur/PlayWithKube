@@ -1,0 +1,19 @@
+
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+GET     /                           controllers.HomeController.index
+
+GET     /namespaces                 controllers.HomeController.namespaces
+GET     /namespaces/:namespace/deployments      controllers.HomeController.listDeploymentsInNamespace(namespace: String)
+GET     /namespaces/:namespace/deployments/:deployment/pods  controllers.HomeController.listDeploymentsInPod(namespace:String, deployment:String)
+
+GET     /deployments                controllers.HomeController.listAllDeployments
+
+GET     /services                   controllers.HomeController.listAllServices
+

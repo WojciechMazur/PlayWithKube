@@ -1,0 +1,23 @@
+@import io.fabric8.kubernetes.api.model.PodList
+@import io.fabric8.kubernetes.api.model.Pod
+@(podsList: PodList, namespace:String="", deployment:String="")
+
+@mainLayout("Pods") {
+
+
+    <h1 id="title">
+        Pods
+        @if(deployment.length!=0){ in deployment @deployment}
+        @if(namespace.length!=0){at @namespace namespace}
+    </h1>
+
+    @if(podsList.getItems.size > 0) {
+        <ul class="content">
+        @for(pod: Pod <- podsList.getItems) {
+            <li>@pod.getMetadata.getName</li>
+        }
+        </ul>
+    } else {
+        <p>There are no pods in this deployment.</p>
+    }
+}

@@ -1,0 +1,11 @@
+@import io.fabric8.kubernetes.api.model.Namespace
+@(namespaces: List[Namespace])
+
+@mainLayout("Namespaces") {
+    <h1 id="title">Namespaces: </h1>
+    <ul class="content">
+    @for(ns <- namespaces) {
+        <li><a href="/namespaces/@ns.getMetadata.getName/deployments">@ns.getMetadata.getName</a></li>
+    }
+    </ul>
+}

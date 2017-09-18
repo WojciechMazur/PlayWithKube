@@ -1,0 +1,65 @@
+.wrapper{
+    width: 100%;
+    height: 960px;
+}
+
+.side-menu{
+    position: relative;
+    margin: 2px 0 0 5px;
+    width: 128px;
+    height: 100%;
+    float: left;
+}
+
+#logo{
+    height: 50px;
+    font-size: 40px;
+}
+.side-menu ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: inherit;
+    height: auto;
+    display: block;
+}
+
+li.menu-box{
+    width: inherit;
+    border: 1px ridge #dedede;
+    vertical-align: middle;
+    text-align: center;
+
+}
+
+a.menu-item {
+    display: block;
+    font-size: 18px;
+    text-decoration: none;
+}
+
+
+.main-content{
+    height: inherit;
+    margin-left: 140px ;
+    padding-left: 10px;
+    border-left: ridge;
+    border-width: 1px;
+
+}
+
+.content a{
+    text-decoration: none;
+}
+.content li{
+    list-style-type: none;
+}
+
+#title{
+    font-family: "DejaVu Sans", serif;
+    font-size: 25px;
+}
+
+
+a:active,a:link,a:visited{color: black}
+a:hover{color: cornflowerblue}

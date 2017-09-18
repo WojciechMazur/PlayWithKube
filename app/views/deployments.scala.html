@@ -1,0 +1,33 @@
+@import io.fabric8.kubernetes.api.model.extensions.DeploymentList
+@import io.fabric8.kubernetes.api.model.extensions.Deployment
+@(deploymentList: DeploymentList, namespace: String = "")
+
+@mainLayout("Deployments") {
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/deployments.js")"></script>
+
+    <button id="showDeploymentCreator">Show deployment creator</button>
+    <div id="deploymentCreator">
+        <form id="deploymentForm"></form>
+        <button id="submit-button" type="button">Submit</button>
+    </div>
+    <div id="content">
+    <h1 id="title">
+    @if(namespace.length == 0) {
+        Deployments in all namespaces
+    } else {
+       Deployments in @namespace namespace
+    }</h1>
+
+    @if(deploymentList.getItems.size > 0) {
+        <ul class="content">
+        @for(deployment: Deployment <- deploymentList.getItems) {
+            <li><a href="/namespaces/@deployment.getMetadata.getNamespace/deployments/@deployment.getMetadata.getName/pods">@deployment.getMetadata.getName</a></li>
+        }
+        </ul>
+    } else {
+        <p>There are no deployments in this namespace.</p>
+    }
+        </div>
+
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/deployments.css")">
+}

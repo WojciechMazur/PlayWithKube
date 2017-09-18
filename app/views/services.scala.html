@@ -1,0 +1,21 @@
+@import io.fabric8.kubernetes.api.model.ServiceList
+@import io.fabric8.kubernetes.api.model.Service
+@(services : ServiceList, namespace:String="")
+
+@mainLayout("Services") {
+    @if(namespace.length == 0) {
+        <h1 id="title">Services in all namespaces</h1>
+    } else {
+        <h1 id="title">Services in @namespace namespace</h1>
+    }
+
+    @if(services.getItems.size > 0) {
+        <ul class="content">
+        @for(service:Service <- services.getItems) {
+            <li>@service.getMetadata.getName</li>
+        }
+        </ul>
+    } else {
+        <p>There are no deployments in this namespace.</p>
+    }
+}

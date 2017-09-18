@@ -1,0 +1,62 @@
+#showDeploymentCreator, #submit-button   {
+    margin: 10px 0 0 0  ;
+    width: 250px;
+    height: 30px;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+#submit-button{
+    visibility: hidden;
+    display: none;
+}
+#deploymentForm {
+    display: none;
+    visibility: hidden;
+}
+
+.checkbox-label {
+    margin: 1px 5px;
+    display:inline-block;
+    border:solid 1px gray;
+    line-height:30px;
+    height:30px;
+    width: 250px;
+    border-radius:30px;
+    -webkit-font-smoothing: antialiased;
+    margin-top:10px;
+    font-family:Arial,Helvetica,sans-serif;
+    color:gray;
+    text-align:center;
+}
+
+#deploymentCreator input[type=checkbox] {
+    display: none;
+}
+
+#deploymentCreator input:checked + label {
+    border: solid 1px #17a3ff;
+    color: #17a3ff;
+}
+
+#deploymentCreator input:checked + label:before {
+    content: "\2713 ";
+}
+
+#deploymentForm input[id$=text]{
+      width: 4em;
+}
+
+#deploymentForm div[id$=resources]{
+    visibility: hidden;
+    display: none;
+}
+
+.resourcesOuter{
+    float: right;
+}
+.resourcesInner{
+    float: none;
+}
+
+

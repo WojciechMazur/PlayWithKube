@@ -1,0 +1,27 @@
+@(title: String)(content: Html)
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        @* Here's where we render the page title `String`. *@
+        <title>@title</title>
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/main.css")">
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="side-menu">
+                <ul class="side-menu">
+                    <li class="menu-box"> <a class="menu-item" href="/" id="logo">Home</a></li>
+                    <li class="menu-box"> <a class="menu-item" href="/namespaces">Namespaces</a></li>
+                    <li class="menu-box"> <a class="menu-item" href="/deployments">Deployments</a></li>
+                    <li class="menu-box"> <a class="menu-item" href="/services">Services</a></li>
+                </ul>
+            </div>
+            <div class="main-content">
+                  @content
+
+                 <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-3.2.1.js")"></script>
+            </div>
+        </div>
+    </body>
+</html>
