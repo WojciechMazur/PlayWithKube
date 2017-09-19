@@ -1,18 +1,28 @@
 #showDeploymentCreator, #submit-button   {
-    margin: 10px 0 0 0  ;
+   margin-top: 15px;
     width: 250px;
     height: 30px;
     border-radius: 10px;
     font-size: 16px;
 }
 
-#submit-button{
-    visibility: hidden;
-    display: none;
+.wrapper{
+    min-width: 480px;
 }
-#deploymentForm {
+
+#deploymentCreator{
     display: none;
     visibility: hidden;
+}
+
+#deploymentForm {
+    display: inherit;
+    visibility: inherit;
+}
+.input-description{
+    padding-left: 25px;
+    display: inline-block;
+    width: 200px;
 }
 
 .checkbox-label {
@@ -53,10 +63,15 @@
 }
 
 .resourcesOuter{
-    float: right;
+    clear: right;
 }
+
 .resourcesInner{
-    float: none;
+    display: block;
+}
+
+#deploymentCreator input[type=range]{
+    width: 200px;
 }
 
 

@@ -1,5 +1,6 @@
 function showDeploymentCreator() {
    var form =  document.getElementById("deploymentForm");
+   var deploymentCreator = document.getElementById("deploymentCreator");
    var submitButton = document.getElementById("submit-button");
    var button = document.getElementById("showDeploymentCreator");
 
@@ -20,7 +21,6 @@ function showDeploymentCreator() {
             newCheckBox.id = 'App' + i;
             newCheckBox.name="list[deployments]";
             newCheckBox.value = availableDeployments[i] ;
-            //elemDiv.insertBefore(newCheckBox, submitButtonRef);
             elemDiv.appendChild(newCheckBox);
 
             var newLabel = document.createElement('label');
@@ -39,30 +39,27 @@ function showDeploymentCreator() {
 
     }
 
-    if(deploymentCreator.style.display==="" || (deploymentCreator.style.display==='none' && deploymentCreator.style.visibility==='hidden')) {
-        if(form.style.display===""){
+    if($(deploymentCreator).css("display")==='none' && $(deploymentCreator).css("visibility")==='hidden') {
+        if(form.childElementCount===0){
             createAvailableDeploymentsCheckBoxes(form);
         }
-        form.style.display = 'block';
-        form.style.visibility = 'visible';
-        submitButton.style.display= 'block';
-        submitButton.style.visibility='visible';
+        $(deploymentCreator).css("display", "block");
+        $(deploymentCreator).css("visibility", "visible");
         button.textContent = 'Hide deployment creator';
         console.log("Deployment creator set to visible");
     }else {
-        form.style.display = 'none';
-        form.style.visibility = 'hidden';
-         submitButton.style.display='none';
-    submitButton.style.visibility='hidden';
+        $(deploymentCreator).css("display", "none");
+        $(deploymentCreator).css("visibility", "hidden");
         button.textContent = 'Show deployment creator';
         console.log("Deployment creator set to hidden");
     }
-
-
 }
 
 function createResoucesFields(resourcesDiv) {
             // ###### Limit CPU #######
+
+    var CPU_STEP = "0.05";
+    var RAM_STEP = "32";
     var limitCPU_div = document.createElement('div');
     var limitRAM_div = document.createElement('div');
     var requestCPU_div = document.createElement('div');
@@ -82,7 +79,7 @@ function createResoucesFields(resourcesDiv) {
     limitCPU.type = "range";
     limitCPU.setAttribute("min",0);
     limitCPU.setAttribute("max",4);
-    limitCPU.setAttribute("step", 0.05);
+    limitCPU.setAttribute("step", CPU_STEP);
     limitCPU.value =0.3;
     limitCPU.id = 'App'+i+'limitCPU';
     limitCPU.name="limitCPU[]";
@@ -92,7 +89,7 @@ function createResoucesFields(resourcesDiv) {
     limitCPU_text.type='number';
     limitCPU_text.value = limitCPU.value;
     limitCPU_text.setAttribute("min",0);
-    limitCPU_text.setAttribute("step", 0.05);
+    limitCPU_text.setAttribute("step", CPU_STEP);
     limitCPU_text.id='App'+i+'limitCPU_text';
     limitCPU_text.name="limitCPU_text[]";
     limitCPU_div.appendChild(limitCPU_text);
@@ -108,7 +105,7 @@ function createResoucesFields(resourcesDiv) {
     limitRAM.type = "range";
     limitRAM.setAttribute("min",0);
     limitRAM.setAttribute("max",4096);
-    limitRAM.setAttribute("step", 1);
+    limitRAM.setAttribute("step", RAM_STEP);
     limitRAM.value =512;
     limitRAM.id = 'App'+i+'limitRAM';
     limitRAM.name="limitRAM[]";
@@ -118,7 +115,7 @@ function createResoucesFields(resourcesDiv) {
     limitRAM_text.type='number';
     limitRAM_text.value = limitRAM.value;
     limitRAM_text.setAttribute("min",0);
-    limitRAM_text.setAttribute("step", 32);
+    limitRAM_text.setAttribute("step", RAM_STEP);
     limitRAM_text.id='App'+i+'limitRAM_text';
     limitRAM_text.name="limitRAM_text[]";
     limitRAM_div.appendChild(limitRAM_text);
@@ -134,7 +131,7 @@ function createResoucesFields(resourcesDiv) {
     requestCPU.type = "range";
     requestCPU.setAttribute("min",0);
     requestCPU.setAttribute("max",4);
-    requestCPU.setAttribute("step", 0.05);
+    requestCPU.setAttribute("step", CPU_STEP);
     requestCPU.value =1;
     requestCPU.id = 'App'+i+'requestCPU';
     requestCPU.name="requestCPU[]";
@@ -150,7 +147,7 @@ function createResoucesFields(resourcesDiv) {
     requestCPU_text.type='number';
     requestCPU_text.value = requestCPU.value;
     requestCPU_text.setAttribute("min",0);
-    requestCPU_text.setAttribute("step", 0.05);
+    requestCPU_text.setAttribute("step", CPU_STEP);
     requestCPU_text.id='App'+i+'requestCPU_text';
     requestCPU_text.name="requestCPU_text[]";
     requestCPU_div.appendChild(requestCPU_text);
@@ -160,7 +157,7 @@ function createResoucesFields(resourcesDiv) {
     requestRAM.type = "range";
     requestRAM.setAttribute("min",0);
     requestRAM.setAttribute("max",4096);
-    requestRAM.setAttribute("step", 16);
+    requestRAM.setAttribute("step", RAM_STEP);
     requestRAM.value =128;
     requestRAM.id = 'App'+i+'requestRAM';
     requestRAM.name="requestRAM[]";
@@ -170,7 +167,7 @@ function createResoucesFields(resourcesDiv) {
     requestRAM_text.type='number';
     requestRAM_text.value = requestRAM.value;
     requestRAM_text.setAttribute("min",0);
-    requestRAM_text.setAttribute("step", 16);
+    requestRAM_text.setAttribute("step", RAM_STEP);
     requestRAM_text.id='App'+i+'requestRAM_text';
     requestRAM_text.name="requestRAM_text[]";
     requestRAM_div.appendChild(requestRAM_text);
@@ -212,15 +209,33 @@ function switchVisibility(resources) {
     }
 }
 
+function rangeResourcesOnChange() {
+    var elemTextId = "#"+$(this).attr('id')+"_text";
+    $(elemTextId).val($(this).val());
+    console.log(elemTextId + " set to: "+$(this).val())
+
+}
+
+function appListSelectionOnChange() {
+      var id = $(this).attr('id');
+      var resources = $("#"+id + '_resources');
+      switchVisibility(resources);
+      console.log(resources)
+}
+
+function numberResourcesOnChange() {
+    $(this).val(Math.max($(this).val(), $(this).attr('min')));
+    var rangeId = $(this).attr('id').replace("_text", "");
+    $("#"+rangeId).val($(this).val());
+    console.log(console.log(rangeId + " set to: "+$(this).val()))
+}
+
 window.onload=function () {
     document.getElementById("showDeploymentCreator").addEventListener('click', showDeploymentCreator);
     document.getElementById("submit-button").addEventListener('click',submitForm);
 
-    $(document).on('change', 'input[type="checkbox"]', function(){
-        var id = $(this).attr('id');
-        var resources = $("#"+id + '_resources');
-        switchVisibility(resources);
-       console.log(resources)
-    });
+    $(document).on('change', 'input[type="checkbox"]', appListSelectionOnChange);
+    $(document).on('change', 'input[type="range"]', rangeResourcesOnChange);
+    $(document).on('change', 'input[type="number"]', numberResourcesOnChange);
 };
 
