@@ -6,6 +6,7 @@
         @* Here's where we render the page title `String`. *@
         <title>@title</title>
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/main.css")">
+        <script src="@controllers.routes.HomeController.jsRoutes()" type="text/javascript"></script>
     </head>
     <body>
         <div class="wrapper">
@@ -18,9 +19,9 @@
                 </ul>
             </div>
             <div class="main-content">
-                  @content
+                @content
+                <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-3.2.1.js")"></script>
 
-                 <script type="text/javascript" src="@routes.Assets.at("javascripts/jquery-3.2.1.js")"></script>
             </div>
         </div>
     </body>

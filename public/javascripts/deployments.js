@@ -58,7 +58,7 @@ function showDeploymentCreator() {
 function createResoucesFields(resourcesDiv) {
             // ###### Limit CPU #######
 
-    var CPU_STEP = "0.05";
+    var CPU_STEP = "50";
     var RAM_STEP = "32";
     var limitCPU_div = document.createElement('div');
     var limitRAM_div = document.createElement('div');
@@ -78,10 +78,10 @@ function createResoucesFields(resourcesDiv) {
     var limitCPU = document.createElement('input');
     limitCPU.type = "range";
     limitCPU.setAttribute("min",0);
-    limitCPU.setAttribute("max",4);
+    limitCPU.setAttribute("max",4000);
     limitCPU.setAttribute("step", CPU_STEP);
-    limitCPU.value =0.3;
-    limitCPU.id = 'App'+i+'limitCPU';
+    limitCPU.value =1000;
+    limitCPU.id = 'App'+i+'_limitCPU';
     limitCPU.name="limitCPU[]";
     limitCPU_div.appendChild(limitCPU);
 
@@ -90,7 +90,7 @@ function createResoucesFields(resourcesDiv) {
     limitCPU_text.value = limitCPU.value;
     limitCPU_text.setAttribute("min",0);
     limitCPU_text.setAttribute("step", CPU_STEP);
-    limitCPU_text.id='App'+i+'limitCPU_text';
+    limitCPU_text.id='App'+i+'_limitCPU_text';
     limitCPU_text.name="limitCPU_text[]";
     limitCPU_div.appendChild(limitCPU_text);
 
@@ -106,8 +106,8 @@ function createResoucesFields(resourcesDiv) {
     limitRAM.setAttribute("min",0);
     limitRAM.setAttribute("max",4096);
     limitRAM.setAttribute("step", RAM_STEP);
-    limitRAM.value =512;
-    limitRAM.id = 'App'+i+'limitRAM';
+    limitRAM.value =1024;
+    limitRAM.id = 'App'+i+'_limitRAM';
     limitRAM.name="limitRAM[]";
     limitRAM_div.appendChild(limitRAM);
 
@@ -116,7 +116,7 @@ function createResoucesFields(resourcesDiv) {
     limitRAM_text.value = limitRAM.value;
     limitRAM_text.setAttribute("min",0);
     limitRAM_text.setAttribute("step", RAM_STEP);
-    limitRAM_text.id='App'+i+'limitRAM_text';
+    limitRAM_text.id='App'+i+'_limitRAM_text';
     limitRAM_text.name="limitRAM_text[]";
     limitRAM_div.appendChild(limitRAM_text);
 
@@ -130,10 +130,10 @@ function createResoucesFields(resourcesDiv) {
     var requestCPU = document.createElement('input');
     requestCPU.type = "range";
     requestCPU.setAttribute("min",0);
-    requestCPU.setAttribute("max",4);
+    requestCPU.setAttribute("max",4000);
     requestCPU.setAttribute("step", CPU_STEP);
-    requestCPU.value =1;
-    requestCPU.id = 'App'+i+'requestCPU';
+    requestCPU.value =300;
+    requestCPU.id = 'App'+i+'_requestCPU';
     requestCPU.name="requestCPU[]";
     requestCPU_div.appendChild(requestCPU);
 
@@ -148,7 +148,7 @@ function createResoucesFields(resourcesDiv) {
     requestCPU_text.value = requestCPU.value;
     requestCPU_text.setAttribute("min",0);
     requestCPU_text.setAttribute("step", CPU_STEP);
-    requestCPU_text.id='App'+i+'requestCPU_text';
+    requestCPU_text.id='App'+i+'_requestCPU_text';
     requestCPU_text.name="requestCPU_text[]";
     requestCPU_div.appendChild(requestCPU_text);
 
@@ -158,8 +158,8 @@ function createResoucesFields(resourcesDiv) {
     requestRAM.setAttribute("min",0);
     requestRAM.setAttribute("max",4096);
     requestRAM.setAttribute("step", RAM_STEP);
-    requestRAM.value =128;
-    requestRAM.id = 'App'+i+'requestRAM';
+    requestRAM.value =256;
+    requestRAM.id = 'App'+i+'_requestRAM';
     requestRAM.name="requestRAM[]";
     requestRAM_div.appendChild(requestRAM);
 
@@ -168,7 +168,7 @@ function createResoucesFields(resourcesDiv) {
     requestRAM_text.value = requestRAM.value;
     requestRAM_text.setAttribute("min",0);
     requestRAM_text.setAttribute("step", RAM_STEP);
-    requestRAM_text.id='App'+i+'requestRAM_text';
+    requestRAM_text.id='App'+i+'_requestRAM_text';
     requestRAM_text.name="requestRAM_text[]";
     requestRAM_div.appendChild(requestRAM_text);
 
@@ -179,23 +179,72 @@ function createResoucesFields(resourcesDiv) {
     requestRAM_div.insertBefore(requestRAM_label,requestRAM);
 
     return resourcesDiv
+}
 
+function getCurrentNamespace() {
+ var url = window.location.toString().split('/');
+ var namespaceIndex = url.indexOf("namespaces");
+ return (namespaceIndex!==-1) ? url[namespaceIndex+1] : "default";
+}
+
+function parseDeploymentCreatorForm() {
+    var namespace = getCurrentNamespace();
+    var id = $(this).attr('id');
+    var splitted = $(this).val().split(" ");
+    return {
+        name: splitted[0].toLowerCase(),
+        namespace: namespace,
+        version: splitted[1] !== undefined ? splitted[1] : "latest",
+        resources: {
+            limits: [{
+                name: "memory",
+                amount: $("#" + id + "_limitRAM").val()+"Mi"
+            }, {
+                name: "cpu",
+                amount: $("#" + id + "_limitCPU").val()+"m"
+            }],
+            requests: [{
+                name: "memory",
+                amount: $("#" + id + "_requestRAM").val()+"Mi"
+            }, {
+                name: "cpu",
+                amount: $("#" + id + "_requestCPU").val()+"m"
+            }]
+        }
+    }
 }
 
 function submitForm() {
- checkboxes = $('#deploymentForm')
-     .find('input:checked[name="list[deployments]"]')
-     .map(function () {
-         var splitted=$(this).val().split(" ");
-         var item = {};
-         item ['name']=splitted[0].toLowerCase();
-         item ['version'] = splitted[1]!=null ? splitted[1] : "latest";
-         return item; })
-     .get();
 
- console.log(checkboxes);
-    return checkboxes
+    var deploymentsList = {
+        kind: "List[Deployments]",
+        items: $('#deploymentForm')
+        .find('input:checked[name="list[deployments]"]')
+        .map(parseDeploymentCreatorForm)
+        .get()
+    };
+
+    $.ajax({
+        headers: {"Content-Type": "application/json"},
+        url: jsRoutes.controllers.HomeController.createDeployment.url,
+        type: "POST",
+        data: JSON.stringify(deploymentsList),
+        dataType: "json",
+        success: function (data) {
+            console.log(data);
+            showDeploymentCreator()
+            $('#status-area').flash_message({
+                text: 'Deployment created!',
+                how: 'append'
+            })
+        },
+        error: function($xhr) {
+        alert("Status: " + $xhr.responseText)
+        }
+    });
 }
+
+
 
 function switchVisibility(resources) {
     if (($(resources).css("display") === 'none' && $(resources).css("visibility") === 'hidden')) {
@@ -213,14 +262,12 @@ function rangeResourcesOnChange() {
     var elemTextId = "#"+$(this).attr('id')+"_text";
     $(elemTextId).val($(this).val());
     console.log(elemTextId + " set to: "+$(this).val())
-
 }
 
 function appListSelectionOnChange() {
       var id = $(this).attr('id');
       var resources = $("#"+id + '_resources');
       switchVisibility(resources);
-      console.log(resources)
 }
 
 function numberResourcesOnChange() {

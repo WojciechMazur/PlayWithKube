@@ -1,9 +1,7 @@
 package services.kube
 
-import java.util
-
-import io.fabric8.kubernetes.api.model.{OwnerReference, Pod, PodList, PodListBuilder}
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
+import io.fabric8.kubernetes.api.model.{Pod, PodList, PodListBuilder}
 import services.kube.Instances.kubeInstance
 import services.kube.ReplicaSets.listReplicaSets
 

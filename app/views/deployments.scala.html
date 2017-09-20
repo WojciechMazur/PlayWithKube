@@ -5,10 +5,11 @@
 @mainLayout("Deployments") {
     <script type="text/javascript" src="@routes.Assets.at("javascripts/deployments.js")"></script>
 
-    <button id="showDeploymentCreator">Show deployment creator</button>
+    <button id="showDeploymentCreator">Show deployment creator</button> <div id="status-area"></div>
     <div id="deploymentCreator">
         <form id="deploymentForm"></form>
         <button id="submit-button" type="button">Submit</button>
+        <hr>
     </div>
     <div id="content">
     <h1 id="title">
