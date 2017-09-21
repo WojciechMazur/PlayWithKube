@@ -4,14 +4,16 @@ function showDeploymentCreator() {
    var submitButton = document.getElementById("submit-button");
    var button = document.getElementById("showDeploymentCreator");
 
+    function getAvailableApps() {
+        $.getJSON("/images", function (result) {
+            console.log("Successful ajax getJson(/images)")
+            createAvailableDeploymentsCheckBoxes(result.items)
+        });
+    }
 
-    function createAvailableDeploymentsCheckBoxes(form) {
-        var availableDeployments = [];
-        availableDeployments[0] = "Elasticsearch 5.5.1";
-        availableDeployments[1] = "Kibana 5.5.1";
-        availableDeployments[2] = "Nginx";
+    function createAvailableDeploymentsCheckBoxes(apps) {
 
-        for (i in availableDeployments) {
+        for (i in apps) {
             var elemDiv= document.createElement('div');
             elemDiv.className="availableAppsList";
             form.appendChild(elemDiv);
@@ -19,8 +21,8 @@ function showDeploymentCreator() {
             var newCheckBox = document.createElement('input');
             newCheckBox.type = 'checkbox';
             newCheckBox.id = 'App' + i;
-            newCheckBox.name="list[deployments]";
-            newCheckBox.value = availableDeployments[i] ;
+            newCheckBox.name="listDeployments";
+            newCheckBox.value = apps[i].name += (apps[i].version!=="latest") ? " " + apps[i].version : ""  ;
             elemDiv.appendChild(newCheckBox);
 
             var newLabel = document.createElement('label');
@@ -33,16 +35,21 @@ function showDeploymentCreator() {
             resourcesDiv.id=newCheckBox.id+'_resources';
             resourcesDiv.className="resourcesOuter";
             elemDiv.appendChild(resourcesDiv);
-            resourcesDiv=createResoucesFields(resourcesDiv)
+            resourcesDiv=createResoucesFields(resourcesDiv);
+
+            var configDiv = document.createElement('div');
+            configDiv.id=newCheckBox.id+'_config';
+            configDiv.className="config";
+            elemDiv.appendChild(configDiv)
+            configDiv= createSpecificFields(configDiv, apps[i].name.split(" ")[0].toLowerCase(), newCheckBox.id)
         }
         console.log("Created checkboxes for available apps")
 
     }
+    if(form.childElementCount===0)
+        getAvailableApps();
 
     if($(deploymentCreator).css("display")==='none' && $(deploymentCreator).css("visibility")==='hidden') {
-        if(form.childElementCount===0){
-            createAvailableDeploymentsCheckBoxes(form);
-        }
         $(deploymentCreator).css("display", "block");
         $(deploymentCreator).css("visibility", "visible");
         button.textContent = 'Hide deployment creator';
@@ -53,6 +60,79 @@ function showDeploymentCreator() {
         button.textContent = 'Show deployment creator';
         console.log("Deployment creator set to hidden");
     }
+}
+
+function createSpecificFields(configDiv, appName, naming){
+    switch(appName){
+        case "elasticsearch": return createElasticsearchFields(configDiv, naming);
+            break;
+        case "kibana": return createKibanaConfigFields(configDiv, naming);
+            break;
+        default:  return createDefaultConfigFields(configDiv, naming)
+    }
+}
+
+function createElasticsearchFields(configDiv, naming) {
+    var masterDiv= document.createElement('div');
+    masterDiv.className="configInner";
+    configDiv.appendChild(masterDiv);
+
+    var dataDiv= document.createElement('div');
+    dataDiv.className="configInner";
+    configDiv.appendChild(dataDiv);
+
+    var clientDiv= document.createElement('div');
+    clientDiv.className="configInner";
+    configDiv.appendChild(clientDiv);
+
+
+    var isMaster=createCheckbox("Master", naming+"_isMaster", "config-checkbox");
+    var isData=createCheckbox("Data", naming+"_isData", "config-checkbox");
+    var isClient=createCheckbox("Client", naming+"_isClient", "config-checkbox");
+
+    var isMasterLabel=createLabel($(isMaster).attr('id'),"Master", "config-checkbox-label");
+    var isDataLabel=createLabel($(isData).attr('id'),"Data", "config-checkbox-label");
+    var isClientLabel=createLabel($(isClient).attr('id'),"Client", "config-checkbox-label");
+
+    var masterNodes=createNumberInput(naming+"_isMaster_nodes",0);
+    var dataNodes=createNumberInput(naming+"_isData_nodes",0);
+    var clientNodes=createNumberInput(naming+"_isClient_nodes",0);
+
+
+    var triggers=[isClient,isData, isMaster];
+    triggers.forEach(function (node) {
+        node.addEventListener('change', function () {
+            console.log($(this).attr('id'));
+            var elemId="#"+$(this).attr('id')+"_nodes";
+           (switchVisibility(elemId, "inline-block")) ?  $(elemId).val(1) :  $(elemId).val(0)
+
+        }, false)
+    });
+
+    masterDiv.appendChild(isMaster);
+    masterDiv.appendChild(isMasterLabel);
+    masterDiv.appendChild(masterNodes);
+    dataDiv.appendChild(isData);
+    dataDiv.appendChild(isDataLabel);
+    dataDiv.appendChild(dataNodes);
+    clientDiv.appendChild(isClient);
+    clientDiv.appendChild(isClientLabel);
+    clientDiv.appendChild(clientNodes);
+
+    return configDiv
+}
+
+function createKibanaConfigFields(configDiv, naming) {
+    return configDiv
+}
+
+function createDefaultConfigFields(configDiv, naming) {
+    var replicas=createNumberInput(naming+"_replicas",1);
+    var replicasLabel = createLabel(replicas.id, "Number of replicas", "defaultConfig");
+    configDiv.appendChild(replicasLabel);
+    configDiv.appendChild(replicas);
+
+    return configDiv
 }
 
 function createResoucesFields(resourcesDiv) {
@@ -187,10 +267,11 @@ function getCurrentNamespace() {
  return (namespaceIndex!==-1) ? url[namespaceIndex+1] : "default";
 }
 
-function parseDeploymentCreatorForm() {
+function  parseDeploymentCreatorForm() {
     var namespace = getCurrentNamespace();
-    var id = $(this).attr('id');
+    var id = "#"+$(this).attr('id');
     var splitted = $(this).val().split(" ");
+    console.log(splitted);
     return {
         name: splitted[0].toLowerCase(),
         namespace: namespace,
@@ -198,28 +279,52 @@ function parseDeploymentCreatorForm() {
         resources: {
             limits: [{
                 name: "memory",
-                amount: $("#" + id + "_limitRAM").val()+"Mi"
+                amount: $(id + "_limitRAM").val()+"Mi"
             }, {
                 name: "cpu",
-                amount: $("#" + id + "_limitCPU").val()+"m"
+                amount: $(id + "_limitCPU").val()+"m"
             }],
             requests: [{
                 name: "memory",
-                amount: $("#" + id + "_requestRAM").val()+"Mi"
+                amount: $(id + "_requestRAM").val()+"Mi"
             }, {
                 name: "cpu",
-                amount: $("#" + id + "_requestCPU").val()+"m"
+                amount: $(id + "_requestCPU").val()+"m"
             }]
         }
     }
+      //  applicationConfig : parseApplicationBasedConfig(id, splitted[0].toLowerCase())
+}
+
+function parseApplicationBasedConfig(id, name){
+    switch(name){
+        case "elasticsearch": return parseElasticsearchConfig(id);
+        break;
+        default: return defaultConfig(id)
+    }
+}
+
+function parseElasticsearchConfig(id){
+    return {
+        isMaster: $(id + "_isMaster").checked ? "true" : "false",
+        masterNodes: $(id + "_isMaster_Nodes").val(),
+        isData: $(id + "_isData").checked ? "true" : "false",
+        dataNodes: $(id + "_isMaster_Nodes").val(),
+        isClient: $(id + "_isClient").checked ? "true" : "false",
+        clientNodes: $(id + "_isClient_Nodes").val()
+    }
+}
+
+function defaultConfig() {
+    return ""
 }
 
 function submitForm() {
 
     var deploymentsList = {
-        kind: "List[Deployments]",
+        kind: "listDeployments",
         items: $('#deploymentForm')
-        .find('input:checked[name="list[deployments]"]')
+        .find('input:checked[name="listDeployments"]')
         .map(parseDeploymentCreatorForm)
         .get()
     };
@@ -232,29 +337,30 @@ function submitForm() {
         dataType: "json",
         success: function (data) {
             console.log(data);
-            showDeploymentCreator()
-            $('#status-area').flash_message({
-                text: 'Deployment created!',
-                how: 'append'
-            })
+            flash("Created deployment!")
+
         },
-        error: function($xhr) {
-        alert("Status: " + $xhr.responseText)
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR),
+            flash(textStatus + " " + errorThrown)
         }
     });
+    showDeploymentCreator()
 }
 
-
-
-function switchVisibility(resources) {
+function switchVisibility(resources, display, visible) {
+    if (display===undefined) display="block";
+    if (visible===undefined) visible="visible"
     if (($(resources).css("display") === 'none' && $(resources).css("visibility") === 'hidden')) {
-        $(resources).css("display","block");
-        $(resources).css("visibility","visible");
-        console.log($(resources).attr('id') + " visibility switched: on")
+        $(resources).css("display",display);
+        $(resources).css("visibility",visible);
+        console.log($(resources).attr('id') + " visibility switched: on");
+        return true
     }else {
         $(resources).css("display","none");
         $(resources).css("visibility","hidden");
         console.log($(resources).attr('id') + " visibility switched: off")
+        return false;
     }
 }
 
@@ -266,8 +372,8 @@ function rangeResourcesOnChange() {
 
 function appListSelectionOnChange() {
       var id = $(this).attr('id');
-      var resources = $("#"+id + '_resources');
-      switchVisibility(resources);
+      switchVisibility("#"+id+"_resources");
+      switchVisibility("#"+id+"_config");
 }
 
 function numberResourcesOnChange() {
@@ -277,12 +383,55 @@ function numberResourcesOnChange() {
     console.log(console.log(rangeId + " set to: "+$(this).val()))
 }
 
+function flash(message) {
+    $(".flash").remove();
+    $('body').prepend(
+        '<div class="flash">' +
+            message +
+        '</div>'
+    );
+    $(".flash").delay(2000).fadeOut();
+}
+
 window.onload=function () {
     document.getElementById("showDeploymentCreator").addEventListener('click', showDeploymentCreator);
     document.getElementById("submit-button").addEventListener('click',submitForm);
 
-    $(document).on('change', 'input[type="checkbox"]', appListSelectionOnChange);
-    $(document).on('change', 'input[type="range"]', rangeResourcesOnChange);
-    $(document).on('change', 'input[type="number"]', numberResourcesOnChange);
+    $(document).on('change', 'input[type="checkbox"][name="listDeployments"]', appListSelectionOnChange);
+    $(document).on('change', '.resourcesInner input[type="range"]', rangeResourcesOnChange);
+    $(document).on('change', '.resourcesInner input[type="number"]', numberResourcesOnChange);
 };
 
+function createCheckbox(value, id, className) {
+    var checkbox =document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = id;
+    checkbox.value = value;
+    checkbox.className=className;
+    return checkbox
+}
+function createLabel(forID, value, className) {
+    var newLabel = document.createElement('label');
+    newLabel.setAttribute('for', forID);
+    newLabel.setAttribute('id', forID+"_label");
+    newLabel.innerHTML = value;
+    newLabel.className = className;
+    return newLabel
+}
+
+function createNumberInput(id, value, min, max, step) {
+    if (value === undefined) value = 0;
+    if (min === undefined) min = 0;
+    if (max === undefined) max = 100;
+    if (step === undefined) step = 1;
+
+    var numberField  = document.createElement('input');
+    numberField.type='number';
+    numberField.value = value;
+    numberField.setAttribute("min",min);
+    if(max!==undefined)
+        numberField.setAttribute("max", max);
+    numberField.setAttribute("step", step);
+    numberField.id=id;
+    return numberField
+}

@@ -63,3 +63,18 @@ a.menu-item {
 
 a:active,a:link,a:visited{color: black}
 a:hover{color: cornflowerblue}
+
+.flash {
+    position: fixed;
+    z-index: 1;
+    top: 100px;
+    right: 10px;
+    color: #fff;
+    font-size: 19px;
+    width: 20%;
+    padding: 20px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    background-color: #afaeaf;
+}

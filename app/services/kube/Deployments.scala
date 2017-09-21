@@ -49,10 +49,6 @@ object Deployments {
     }
   }
 
-  def listAvailableImages():List[String]={
-    List("Elasticsearch 5.5.1", "Kibana 5.5.1", "Nginx")
-  }
-
    def createElasticsearchDeployment(deployment: Deployment, master:Boolean=true, data:Boolean=true, http:Boolean=true,
                                     expose:Boolean=true, desiredReplicas:Int = 1, masterNodes:Int=0)
                                     : Status ={
@@ -126,14 +122,13 @@ object Deployments {
       .build()
 
      val deploymentStatus = Future{kubeInstance.extensions().deployments().create(deploymentInstance)}
-   if (expose)
+    if (expose)
         exposeElasticsearchDeployment(master, http, deployment.namespace)
 
     Await.result[io.fabric8.kubernetes.api.model.extensions.Deployment](deploymentStatus, 10 seconds) match {
       case _: io.fabric8.kubernetes.api.model.extensions.Deployment => new StatusBuilder().withCode(201).build()
     }
    }
-
 
   private def buildInitContainerAnnotation(name:String, image:String, command:String, image_pull_policy:String="IfNotPresent",
                                            privileged:Boolean=true):String={
@@ -166,7 +161,6 @@ object Deployments {
            selector = "app=elasticsearch,master=true")
        }
      }
-
 
      if (http) Future {
        Services.createService(

@@ -9,6 +9,7 @@ import services.kube.{Deployments, Pods}
 import services.kube.Services.listServices
 import javax.inject.Inject
 
+import Models.Application
 import play.api.mvc._
 
 import scala.language.postfixOps
@@ -19,6 +20,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     Ok(
       JavaScriptReverseRouter("jsRoutes")(
         routes.javascript.HomeController.createDeployment,
+        routes.javascript.HomeController.getImages,
         routes.javascript.HomeController.test
       )
     ).as("text/javascript")
@@ -54,14 +56,21 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
       if (listDeployments != null) {
         println("Gathered list of deployments" + listDeployments.toString())
         for (deployment <- listDeployments)
-          yield Deployments.createDeployment(deployment)
+          Deployments.createDeployment(deployment)
       }
     }catch {
-      case ex:Exception => BadRequest(ex.getMessage)
+      case ex:Exception =>
+        println(s"Bad request ${ex.getMessage}")
+        BadRequest(ex.getMessage)
     }
-      Ok("Successfully created deployments ")
+    Ok("Ok")
   }
 
+  def getImages = Action{
+    val result = Json.obj("items" -> Application.getDefaultApplications())
+    println("Sending list of available applications: \n" + Json.prettyPrint(result))
+    Ok(result)
+  }
 
   def listAllServices = Action {
     val services = listServices()

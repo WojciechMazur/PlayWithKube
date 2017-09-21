@@ -19,4 +19,5 @@ GET     /services                   controllers.HomeController.listAllServices
 
 POST    /test                       controllers.HomeController.test
 
+GET     /images                     controllers.HomeController.getImages
 GET     /jsRoutes                   controllers.HomeController.jsRoutes

@@ -6,6 +6,14 @@
     font-size: 16px;
 }
 
+.availableAppsList{
+    display: flex;
+}
+
+.availableAppsList > div {
+    flex: 1;
+}
+
 .wrapper {
     min-width: 480px;
 }
@@ -25,8 +33,7 @@
     width: 200px;
 }
 
-.checkbox-label {
-    margin: 1px 5px;
+.checkbox-label, .config-checkbox label, .config-checkbox-label {
     display:inline-block;
     border:solid 1px gray;
     line-height:30px;
@@ -34,7 +41,7 @@
     width: 250px;
     border-radius:30px;
     -webkit-font-smoothing: antialiased;
-    margin-top:10px;
+    margin: 10px 5px 1px;
     font-family:Arial,Helvetica,sans-serif;
     color:gray;
     text-align:center;
@@ -64,14 +71,44 @@
 
 .resourcesOuter{
     clear: right;
+    width: 510px;
 }
 
 .resourcesInner{
+    clear: right;
     display: block;
+    width: inherit;
+}
+
+.config{
+    visibility: hidden;
+    display: none;
+    width: 300px;
+}
+
+.config-checkbox-label{
+    line-height:20px;
+    height:20px;
+    width: 100px;
+    border-radius:30px;
+}
+
+.configInner{
+    display: block;
+    width: 170px;
+}
+
+.configInner  input[type="number"]{
+    display: none;
+    visibility: hidden;
 }
 
 #deploymentCreator input[type=range]{
     width: 200px;
 }
 
+label.defaultConfig  {
+    width: 135px;
+    display: inline-block;
+}
 
