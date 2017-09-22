@@ -15,5 +15,5 @@ object Application{
   implicit val applicationFormat: OFormat[Application] = Json.format[Application]
   implicit val applicationWrites: OWrites[Application] = Json.writes[Application]
   implicit val applicationReads: Reads[Application] = Json.reads[Application]
-  def getDefaultApplications(): List[Application] = defaultApplications
+  def getDefaultApplications(): List[Application] = defaultApplications.sortBy(_.name)
 }

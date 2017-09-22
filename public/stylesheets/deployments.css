@@ -72,6 +72,7 @@
 .resourcesOuter{
     clear: right;
     width: 510px;
+    max-width: 510px;
 }
 
 .resourcesInner{
@@ -80,7 +81,7 @@
     width: inherit;
 }
 
-.config{
+.appConfig{
     visibility: hidden;
     display: none;
     width: 300px;
@@ -91,6 +92,11 @@
     height:20px;
     width: 100px;
     border-radius:30px;
+}
+
+.config{
+    display: none;
+    visibility: hidden;
 }
 
 .configInner{
@@ -107,8 +113,26 @@
     width: 200px;
 }
 
-label.defaultConfig  {
+.defaultConfig > * {
+    margin-top: 25px;
     width: 135px;
     display: inline-block;
 }
 
+.defaultConfig input[type=number]{width: 3em}
+
+div[id$=_div]{
+    max-width: 255px;
+}
+
+div[id$=_div]>label[class=config-checkbox-label]{
+   padding-top: 5px;
+    font-size: 15px;
+    width: 150px;
+    margin-left: 52px;
+    height: 25px;
+    display: none;
+    visibility: hidden;
+}
+
+div[id$=_defaultConfig]{visibility: hidden; display: none}

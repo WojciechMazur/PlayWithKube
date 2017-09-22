@@ -16,20 +16,25 @@ function showDeploymentCreator() {
         for (i in apps) {
             var elemDiv= document.createElement('div');
             elemDiv.className="availableAppsList";
+            elemDiv.id="App"+i+"_root";
             form.appendChild(elemDiv);
+
+            var appDiv=document.createElement('div');
+            appDiv.id="App"+i+"_div";
+            elemDiv.appendChild(appDiv);
 
             var newCheckBox = document.createElement('input');
             newCheckBox.type = 'checkbox';
             newCheckBox.id = 'App' + i;
             newCheckBox.name="listDeployments";
             newCheckBox.value = apps[i].name += (apps[i].version!=="latest") ? " " + apps[i].version : ""  ;
-            elemDiv.appendChild(newCheckBox);
+            appDiv.appendChild(newCheckBox);
 
             var newLabel = document.createElement('label');
             newLabel.setAttribute('for', newCheckBox.id);
             newLabel.innerHTML = newCheckBox.value;
             newLabel.className="checkbox-label";
-            elemDiv.appendChild(newLabel);
+            appDiv.appendChild(newLabel);
 
             var resourcesDiv = document.createElement('div');
             resourcesDiv.id=newCheckBox.id+'_resources';
@@ -40,8 +45,18 @@ function showDeploymentCreator() {
             var configDiv = document.createElement('div');
             configDiv.id=newCheckBox.id+'_config';
             configDiv.className="config";
-            elemDiv.appendChild(configDiv)
-            configDiv= createSpecificFields(configDiv, apps[i].name.split(" ")[0].toLowerCase(), newCheckBox.id)
+            elemDiv.appendChild(configDiv);
+            var specificConfig = createSpecificFields(configDiv, apps[i].name.split(" ")[0].toLowerCase(), newCheckBox.id);
+            if(specificConfig!==undefined)
+                configDiv=specificConfig;
+
+            var defaultDiv= document.createElement('div');
+            defaultDiv.className="defaultConfig";
+            defaultDiv.id=newCheckBox.id+"_defaultConfig";
+            configDiv.appendChild(defaultDiv);
+
+            createDefaultConfigFields(defaultDiv, newCheckBox.id);
+
         }
         console.log("Created checkboxes for available apps")
 
@@ -68,23 +83,36 @@ function createSpecificFields(configDiv, appName, naming){
             break;
         case "kibana": return createKibanaConfigFields(configDiv, naming);
             break;
-        default:  return createDefaultConfigFields(configDiv, naming)
+        default: return undefined
     }
 }
 
 function createElasticsearchFields(configDiv, naming) {
+    console.log(naming);
+
+    var appConfigDiv=document.createElement('div');
+    appConfigDiv.className="appConfig";
+    appConfigDiv.id=naming+"_appConfig";
+    configDiv.appendChild(appConfigDiv);
+
     var masterDiv= document.createElement('div');
     masterDiv.className="configInner";
-    configDiv.appendChild(masterDiv);
+    appConfigDiv.appendChild(masterDiv);
 
     var dataDiv= document.createElement('div');
     dataDiv.className="configInner";
-    configDiv.appendChild(dataDiv);
+    appConfigDiv.appendChild(dataDiv);
 
     var clientDiv= document.createElement('div');
     clientDiv.className="configInner";
-    configDiv.appendChild(clientDiv);
+    appConfigDiv.appendChild(clientDiv);
 
+    var isProductionMode=createCheckbox("Production Mode", naming+"_isProductionMode", "config-checkbox");
+    var isExposed=createCheckbox("Create services", naming+"_isExposed", "config-checkbox");
+    $(isExposed).prop('checked', true);
+
+    var isProductionModeLabel=createLabel($(isProductionMode).attr('id'),"Production Mode", "config-checkbox-label");
+    var isExposedLabel=createLabel($(isExposed).attr('id'),"Create services", "config-checkbox-label");
 
     var isMaster=createCheckbox("Master", naming+"_isMaster", "config-checkbox");
     var isData=createCheckbox("Data", naming+"_isData", "config-checkbox");
@@ -98,11 +126,15 @@ function createElasticsearchFields(configDiv, naming) {
     var dataNodes=createNumberInput(naming+"_isData_nodes",0);
     var clientNodes=createNumberInput(naming+"_isClient_nodes",0);
 
+    isProductionMode.addEventListener('change', function () {
+        var elemId="#"+$(this).attr('id').split("_")[0];
+            switchVisibility(elemId+"_appConfig");
+            switchVisibility(elemId+"_defaultConfig");
+    });
 
     var triggers=[isClient,isData, isMaster];
     triggers.forEach(function (node) {
         node.addEventListener('change', function () {
-            console.log($(this).attr('id'));
             var elemId="#"+$(this).attr('id')+"_nodes";
            (switchVisibility(elemId, "inline-block")) ?  $(elemId).val(1) :  $(elemId).val(0)
 
@@ -119,6 +151,12 @@ function createElasticsearchFields(configDiv, naming) {
     clientDiv.appendChild(isClientLabel);
     clientDiv.appendChild(clientNodes);
 
+    var divId="#"+naming+"_div";
+    $(divId).append(isProductionMode);
+    $(divId).append(isProductionModeLabel);
+    $(divId).append(isExposed);
+    $(divId).append(isExposedLabel);
+
     return configDiv
 }
 
@@ -128,6 +166,7 @@ function createKibanaConfigFields(configDiv, naming) {
 
 function createDefaultConfigFields(configDiv, naming) {
     var replicas=createNumberInput(naming+"_replicas",1);
+    replicas.className="defaultConfig";
     var replicasLabel = createLabel(replicas.id, "Number of replicas", "defaultConfig");
     configDiv.appendChild(replicasLabel);
     configDiv.appendChild(replicas);
@@ -271,29 +310,26 @@ function  parseDeploymentCreatorForm() {
     var namespace = getCurrentNamespace();
     var id = "#"+$(this).attr('id');
     var splitted = $(this).val().split(" ");
-    console.log(splitted);
+    var name=splitted[0];
+    var version=splitted[1];
     return {
-        name: splitted[0].toLowerCase(),
+        name: name.toLowerCase(),
         namespace: namespace,
-        version: splitted[1] !== undefined ? splitted[1] : "latest",
+        version: version !== undefined ? version : "latest",
         resources: {
-            limits: [{
-                name: "memory",
-                amount: $(id + "_limitRAM").val()+"Mi"
-            }, {
-                name: "cpu",
-                amount: $(id + "_limitCPU").val()+"m"
-            }],
-            requests: [{
-                name: "memory",
-                amount: $(id + "_requestRAM").val()+"Mi"
-            }, {
-                name: "cpu",
-                amount: $(id + "_requestCPU").val()+"m"
-            }]
-        }
+            limits: {
+                memory: $(id + "_limitRAM").val()+"Mi",
+                cpu:    $(id + "_limitCPU").val()+"m"
+            },
+            requests: {
+                memory: $(id + "_requestRAM").val()+"Mi",
+                cpu:    $(id + "_requestCPU").val()+"m"
+            }
+        },
+        replicas: Number($(id+"_replicas").val()),
+        applicationConfig : parseApplicationBasedConfig(id, splitted[0].toLowerCase())
+
     }
-      //  applicationConfig : parseApplicationBasedConfig(id, splitted[0].toLowerCase())
 }
 
 function parseApplicationBasedConfig(id, name){
@@ -306,17 +342,19 @@ function parseApplicationBasedConfig(id, name){
 
 function parseElasticsearchConfig(id){
     return {
-        isMaster: $(id + "_isMaster").checked ? "true" : "false",
-        masterNodes: $(id + "_isMaster_Nodes").val(),
-        isData: $(id + "_isData").checked ? "true" : "false",
-        dataNodes: $(id + "_isMaster_Nodes").val(),
-        isClient: $(id + "_isClient").checked ? "true" : "false",
-        clientNodes: $(id + "_isClient_Nodes").val()
+        productionMode: $(id + "_isProductionMode").is(':checked').toString(),
+        expose: $(id + "_isExposed").is(':checked').toString(),
+        isMaster: $(id + "_isMaster").is(':checked').toString(),
+        masterNodes: $(id + "_isMaster_nodes").val(),
+        isData: $(id + "_isData").is(':checked').toString(),
+        dataNodes: $(id + "_isData_nodes").val(),
+        isClient: $(id + "_isClient").is(':checked').toString(),
+        clientNodes: $(id + "_isClient_nodes").val()
     }
 }
 
 function defaultConfig() {
-    return ""
+    return {}
 }
 
 function submitForm() {
@@ -372,8 +410,11 @@ function rangeResourcesOnChange() {
 
 function appListSelectionOnChange() {
       var id = $(this).attr('id');
+      switchVisibility("#"+id+"_isProductionMode_label");
+      switchVisibility("#"+id+"_isExposed_label");
       switchVisibility("#"+id+"_resources");
       switchVisibility("#"+id+"_config");
+      switchVisibility("#"+id+"_defaultConfig");
 }
 
 function numberResourcesOnChange() {
