@@ -11,13 +11,14 @@ GET     /                           controllers.HomeController.index
 
 GET     /namespaces                 controllers.HomeController.namespaces
 GET     /namespaces/:namespace/deployments      controllers.HomeController.listDeploymentsInNamespace(namespace: String)
-GET     /namespaces/:namespace/deployments/:deployment/pods  controllers.HomeController.listDeploymentsInPod(namespace:String, deployment:String)
+GET     /namespaces/:namespace/deployments/:deployment/pods  controllers.HomeController.listPodsInDeployment(namespace:String, deployment:String)
 
 GET     /deployments                controllers.HomeController.listAllDeployments
 POST    /deployments                controllers.HomeController.createDeployment
-GET     /services                   controllers.HomeController.listAllServices
+DELETE  /deployments                controllers.HomeController.deleteDeployments
 
-POST    /test                       controllers.HomeController.test
+GET     /services                   controllers.HomeController.listAllServices
+DELETE  /services                   controllers.HomeController.deleteServices
 
 GET     /images                     controllers.HomeController.getImages
 GET     /jsRoutes                   controllers.HomeController.jsRoutes

@@ -375,12 +375,10 @@ function submitForm() {
         dataType: "json",
         success: function (data) {
             console.log(data);
-            flash("Created deployment!")
-
         },
         error: function (jqXHR, textStatus, errorThrown) {
-            console.log(jqXHR),
-            flash(textStatus + " " + errorThrown)
+            console.log(jqXHR);
+            console.log(textStatus + " " + errorThrown)
         }
     });
     showDeploymentCreator()
@@ -388,7 +386,7 @@ function submitForm() {
 
 function switchVisibility(resources, display, visible) {
     if (display===undefined) display="block";
-    if (visible===undefined) visible="visible"
+    if (visible===undefined) visible="visible";
     if (($(resources).css("display") === 'none' && $(resources).css("visibility") === 'hidden')) {
         $(resources).css("display",display);
         $(resources).css("visibility",visible);
@@ -424,24 +422,49 @@ function numberResourcesOnChange() {
     console.log(console.log(rangeId + " set to: "+$(this).val()))
 }
 
-function flash(message) {
-    $(".flash").remove();
-    $('body').prepend(
-        '<div class="flash">' +
-            message +
-        '</div>'
-    );
-    $(".flash").delay(2000).fadeOut();
+
+function deleteCheckedDeployments() {
+    console.log("Deleting");
+    var items = $('#available-deployments-table')
+        .find('input:checked[name="checked-deployments"]')
+        .map(parseCheckedDeployments)
+        .get();
+    var request = {
+        kind: "List[DeploymentFinder]",
+        items: items
+    };
+
+     $.ajax({
+        headers: {"Content-Type": "application/json"},
+        url: jsRoutes.controllers.HomeController.deleteDeployments.url,
+        type: "DELETE",
+        data: JSON.stringify(request),
+        dataType: "json",
+        success: function (data) {
+            console.log(data);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+            console.log(textStatus + " " + errorThrown)
+        }
+    });
+    window.location.href = window.location.href;
+}
+
+function parseCheckedDeployments() {
+    var id = $(this).attr('id').split("_")[2];
+    var namespace = $("#deployment_namespace_"+id).text().replace(/\s/g,'');
+    var serviceName = $("#deployment_name_"+id).text().replace(/\s/g,'');
+    return {
+        name: serviceName,
+        namespace: namespace
+    }
 }
 
 window.onload=function () {
-    document.getElementById("showDeploymentCreator").addEventListener('click', showDeploymentCreator);
-    document.getElementById("submit-button").addEventListener('click',submitForm);
 
-    $(document).on('change', 'input[type="checkbox"][name="listDeployments"]', appListSelectionOnChange);
-    $(document).on('change', '.resourcesInner input[type="range"]', rangeResourcesOnChange);
-    $(document).on('change', '.resourcesInner input[type="number"]', numberResourcesOnChange);
 };
+
 
 function createCheckbox(value, id, className) {
     var checkbox =document.createElement('input');
@@ -476,3 +499,13 @@ function createNumberInput(id, value, min, max, step) {
     numberField.id=id;
     return numberField
 }
+
+window.onload=function () {
+    document.getElementById("showDeploymentCreator").addEventListener('click', showDeploymentCreator);
+    document.getElementById("submit-button").addEventListener('click',submitForm);
+    document.getElementById("btn-deployments-delete").addEventListener('click', deleteCheckedDeployments);
+
+    $(document).on('change', 'input[type="checkbox"][name="listDeployments"]', appListSelectionOnChange);
+    $(document).on('change', '.resourcesInner input[type="range"]', rangeResourcesOnChange);
+    $(document).on('change', '.resourcesInner input[type="number"]', numberResourcesOnChange);
+    };

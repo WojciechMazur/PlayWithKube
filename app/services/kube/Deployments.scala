@@ -14,9 +14,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
-import scala.util.{Failure, Success}
 
 object Deployments {
+
+  case class DeploymentFinder(name:String, namespace:String)
+  implicit val deploymentFinderReads: OFormat[DeploymentFinder] = Json.format[DeploymentFinder]
+
   case class ResourcesRequirements(limits: Map[String, String], requests: Map[String, String])
   implicit val resourcesRequirementsReads: OFormat[ResourcesRequirements] = Json.format[ResourcesRequirements]
 
@@ -41,6 +44,17 @@ object Deployments {
     deploymentsList match {
       case list:DeploymentList => list
       case _ => throw new ClassNotFoundException
+    }
+  }
+
+  def deleteDeployment(name:String, namespace:String): Unit ={
+    if(namespace=="kube-system")
+      throw new IllegalArgumentException("Cannot delete kube-system deployment")
+    try{
+    kubeInstance.extensions().deployments().inNamespace(namespace).withName(name).delete()
+    }catch {
+      case ex:Exception => println(ex.getMessage)
+        throw ex
     }
   }
 
@@ -103,7 +117,6 @@ object Deployments {
       version = deployment.version)
   }
 
-
   private def createNginxDeploymentHelper(deployment: Deployment): Unit ={
     createNginxDeployment(
       deployment.name,
@@ -121,7 +134,8 @@ object Deployments {
            name = "kibana",
            port = 5601,
            serviceType = LoadBalancer.toString,
-           selector = "app=kibana")
+           selector = "app=kibana",
+           externalIP = "10.132.15.190")
        }
   }
 
@@ -231,7 +245,8 @@ object Deployments {
            name = "nginx",
            port = 80,
            serviceType = LoadBalancer.toString,
-           selector = "app=nginx")
+           selector = "app=nginx",
+           externalIP = "10.132.15.190")
        }
 
     Await.result[io.fabric8.kubernetes.api.model.extensions.Deployment](deploymentStatus, 10 seconds) match {
@@ -362,7 +377,8 @@ object Deployments {
          name = "elasticsearch",
          port = 9200,
          serviceType = LoadBalancer.toString,
-         selector = "app=elasticsearch,http=true")
+         selector = "app=elasticsearch,http=true",
+         externalIP = "10.132.15.190")
      }
 
    }
@@ -371,6 +387,4 @@ object Deployments {
     for (res <- resources)
       yield res._1 -> new QuantityBuilder().withAmount(res._2).build()
   }
-
-
 }

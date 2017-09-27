@@ -4,9 +4,9 @@ package controllers
 import io.fabric8.kubernetes.api.model.extensions.DeploymentList
 import play.api.libs.json.{JsValue, Json}
 import play.api.routing._
-import services.kube.Deployments.{Deployment, listDeployments}
-import services.kube.{Deployments, Pods}
-import services.kube.Services.listServices
+import services.kube.Deployments.{Deployment, DeploymentFinder, listDeployments}
+import services.kube.{Deployments, Pods, Services}
+import services.kube.Services.{ServiceFinder, listServices}
 import javax.inject.Inject
 
 import Models.Application
@@ -21,7 +21,8 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
       JavaScriptReverseRouter("jsRoutes")(
         routes.javascript.HomeController.createDeployment,
         routes.javascript.HomeController.getImages,
-        routes.javascript.HomeController.test
+        routes.javascript.HomeController.deleteDeployments,
+        routes.javascript.HomeController.deleteServices
       )
     ).as("text/javascript")
   }
@@ -39,7 +40,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     Ok(views.html.deployments(deployments, namespace))
   }
 
-  def listDeploymentsInPod(namespace: String, deploymentName: String) = Action {
+  def listPodsInDeployment(namespace: String, deploymentName: String) = Action {
     val pods = Pods.listPodsInDeployment(deploymentName, namespace)
     Ok(views.html.pods(pods, namespace, deploymentName))
   }
@@ -77,10 +78,23 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     Ok(views.html.services(services))
   }
 
-  def test = Action(parse.json) { implicit request =>
-    println(request.body.toString)
-    Ok("Body:" )
+  def deleteServices(): Action[JsValue] = Action(parse.json){ request =>
+    println(s"Services to delete: ${Json.prettyPrint(request.body)}")
+    val servicesToDelete = (request.body \ "items").as[List[ServiceFinder]]
+    for(service<-servicesToDelete){
+      Services.deleteService(service.name, service.namespace)
+    }
+    Ok("deleted")
   }
+
+  def deleteDeployments(): Action[JsValue] = Action(parse.json){ request=>
+    println(s"Deployments to delete: ${Json.prettyPrint(request.body)}")
+    val deploymentsToDelete = (request.body \ "items").as[List[DeploymentFinder]]
+    for(deployment <- deploymentsToDelete)
+      Deployments.deleteDeployment(deployment.name, deployment.namespace)
+    Ok("deleted")
+  }
+
 
 }
 

@@ -1,0 +1,26 @@
+.services-wrapper{
+    width: 1080px;
+}
+
+.listing-table table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.listing-table td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+.selector-item{
+    display: inline-block;
+    border: groove;
+    padding: 2px 5px;
+    border-radius: 7px;
+}
+
+a{
+    text-decoration: none;
+}

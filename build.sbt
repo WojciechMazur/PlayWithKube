@@ -21,7 +21,6 @@ libraryDependencies ++= Seq(
   "io.fabric8" % "kubernetes-model" % "1.1.4",
   "org.scalactic" %% "scalactic" % "3.0.1",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-
 )
 unmanagedResourceDirectories in Test +=  baseDirectory ( _ /"target/web/public/test" ).value
 

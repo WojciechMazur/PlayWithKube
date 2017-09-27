@@ -1,6 +1,10 @@
 package services.kube
 
+import java.net.InetAddress
+
 import io.fabric8.kubernetes.api.model._
+import play.api.libs.json.{Json, OFormat}
+import services.kube.Deployments.ResourcesRequirements
 import services.kube.Instances.kubeInstance
 
 import scala.collection.JavaConverters._
@@ -10,6 +14,8 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 object Services {
+  case class ServiceFinder(name:String, namespace:String)
+  implicit val serviceFinderformat: OFormat[ServiceFinder] = Json.format[ServiceFinder]
 
   object ServiceType extends Enumeration {
     type ServiceType = Value
@@ -32,7 +38,21 @@ object Services {
     }
   }
 
-  def createService(name: String, namespace: String = "default", port: Int, serviceType: String, selector: String) {
+  def deleteService(name:String, namespace:String): Unit ={
+    println(s"Deleting service $name in $namespace namespace")
+    if(namespace!="kube-system"){
+      try{
+        kubeInstance.services().inNamespace(namespace).withName(name).delete()
+      }catch {
+        case ex:Exception=> println(ex.getMessage)
+          throw ex;
+      }
+    }
+    else
+      throw new IllegalArgumentException("Cannot delete system deployments")
+  }
+
+  def createService(name: String, namespace: String = "default", port: Int, serviceType: String, selector: String, externalIP:String=null) {
     val servicePort = new ServicePortBuilder()
       .withName(name)
       .withPort(port)
@@ -45,10 +65,15 @@ object Services {
       .toMap.asJava
 
     val serviceSpec = new ServiceSpecBuilder()
-      .withType(serviceType)
-      .withPorts(servicePort)
-      .withSelector(parsedSelector)
+        .withType(serviceType)
+        .withPorts(servicePort)
+        .withSelector(parsedSelector)
       .build()
+
+    if(serviceType!="ClusterIP")
+      serviceSpec.setExternalIPs(List("10.132.15.190").asJava)
+
+    println(serviceSpec.getExternalIPs)
 
     Future {
       kubeInstance.services().createNew()
@@ -59,7 +84,6 @@ object Services {
         .withSpec(serviceSpec)
         .done()
     } recover {
-
       case ex: Throwable if ex.getMessage.contains("409") => new StatusBuilder().withCode(304).withMessage(s"Service with name $name already exists in namespace $namespace").build()
       case ex: Throwable => new StatusBuilder().withCode(304).withMessage("Cannot create service. Reason:" + ex.getMessage).build()
     }

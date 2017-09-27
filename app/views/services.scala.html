@@ -1,6 +1,9 @@
 @import io.fabric8.kubernetes.api.model.ServiceList
 @import io.fabric8.kubernetes.api.model.Service
+@import scala.collection.JavaConverters._
+
 @(services : ServiceList, namespace:String="")
+@import java.math.BigInteger; var counter=1;
 
 @mainLayout("Services") {
     @if(namespace.length == 0) {
@@ -9,13 +12,60 @@
         <h1 id="title">Services in @namespace namespace</h1>
     }
 
+
     @if(services.getItems.size > 0) {
-        <ul class="content">
-        @for(service:Service <- services.getItems) {
-            <li>@service.getMetadata.getName</li>
-        }
-        </ul>
+        <div class="services-wrapper">
+            <table class="listing-table" id="available-services-table">
+                <tr>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Namespace</th>
+                    <th>Cluster IP</th>
+                    <th>External IP</th>
+                    <th>Selectors</th>
+                </tr>
+                @for(service: Service <- services.getItems) {
+                    <tr>
+                        <td id="svc_checkbox_@counter">
+                            <input id="svc_checked_@counter" type="checkbox" name="checked-services"/>&nbsp;
+                        </td>
+                        <td id="svc_name_@counter">
+                            <label for="svc_checked_@counter">@service.getMetadata.getName</label>
+                        </td>
+                        <td id="svc_namepsace_@counter">@service.getMetadata.getNamespace</td>
+                        <td id="svc_clusterIP_@counter">
+                            @for(port:io.fabric8.kubernetes.api.model.ServicePort <- service.getSpec.getPorts) {
+                                <a href=http://@service.getSpec.getClusterIP:@port.getPort>
+                              @service.getSpec.getClusterIP:@port.getPort</a><br>
+                            }
+                        </td>
+                        <td id="svc_externalIP_@counter">@if(service.getSpec.getExternalIPs.isEmpty){
+                            -
+                        }else {
+                            @for(ip: String <- service.getSpec.getExternalIPs;
+                                port:io.fabric8.kubernetes.api.model.ServicePort <- service.getSpec.getPorts) {
+                                    <a href=http://@ip:@port.getPort>@ip:@port.getPort</a><br>
+                            }
+                        }
+                        <td>
+                            @if(service.getSpec.getSelector != null) {
+                                @for(selector <- service.getSpec.getSelector.asScala.toMap if selector != null) {
+                                    <div class="selector-item"> @selector._1: @selector._2</div>
+                                }
+                            }
+                        </td>
+
+                    </tr>
+                    @{
+                        counter += 1
+                    }
+                }
+            </table>
+            <input type="button" id="btn-services-delete" value="Delete">
+        </div>
     } else {
         <p>There are no deployments in this namespace.</p>
     }
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/tables.css")">
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/services.js")"></script>
 }
