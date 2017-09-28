@@ -3,7 +3,6 @@
 @import scala.collection.JavaConverters._
 
 @(deploymentList: DeploymentList, namespace: String = "")
-@import io.fabric8.kubernetes.api.model.PodList; var podList=new PodList();
 @import java.math.BigInteger; var counter=0;
 
 
@@ -41,10 +40,20 @@
                             <input id="deployment_checked_@counter" type="checkbox" name="checked-deployments"/>&nbsp;
                         </td>
                         <td id="deployment_name_@counter">
-                            <label for="deployment_checked_@counter">@deployment.getMetadata.getName</label>
+                            <label for="deployment_checked_@counter">
+                                <a href="@routes.HomeController.listPodsInDeployment(
+                                    deployment.getMetadata.getNamespace,
+                                    deployment.getMetadata.getName)">
+                                    @deployment.getMetadata.getName
+                                </a>
+                            </label>
                         </td>
                         <td id="deployment_namespace_@counter">@deployment.getMetadata.getNamespace</td>
-                        <td id="deployment_replicas_@counter">@deployment.getStatus.getAvailableReplicas/@deployment.getStatus.getReplicas</td>
+                        <td id="deployment_replicas_@counter">@if(deployment.getStatus.getAvailableReplicas!=null) {
+                            @deployment.getStatus.getAvailableReplicas
+                        }else{
+                            0
+                        }/@deployment.getStatus.getReplicas</td>
                         <td>
                             @if(deployment.getMetadata.getLabels != null) {
                                 @for(label <- deployment.getMetadata.getLabels.asScala.toMap) {
@@ -52,12 +61,11 @@
                                 }
                             }
                         </td>
-
                     </tr>
                     @{counter += 1}
                 }
             </table>
-            <input type="button" id="btn-deployments-delete" value="Delete">
+            <input type="button" id="btn-deployments-delete" class="table-action-button" value="Delete">
     } else {
         <p>There are no deployments in this namespace.</p>
     }

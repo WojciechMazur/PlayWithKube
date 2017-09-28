@@ -9,7 +9,6 @@ object Application{
     Application("Elasticsearch", "latest", "manatee/docker/elastisearch_nxp:latest"),
     Application("Kibana", "latest", "manatee/docker/kibana_nxp:latest"),
     Application("Nginx", "latest", "nginx:latest"),
-    Application("Elasticsearch", "5.5.1", "manatee/docker/elastisearch_nxp:5.5.1"),
   )
 
   implicit val applicationFormat: OFormat[Application] = Json.format[Application]

@@ -1,6 +1,9 @@
 @import io.fabric8.kubernetes.api.model.PodList
 @import io.fabric8.kubernetes.api.model.Pod
+@import io.fabric8.kubernetes.api.model.Container
+@import io.fabric8.kubernetes.api.model.ContainerStatus
 @(podsList: PodList, namespace:String="", deployment:String="")
+@import java.math.BigInteger; var counter=0; var restartCount=0;
 
 @mainLayout("Pods") {
 
@@ -11,13 +14,45 @@
         @if(namespace.length!=0){at @namespace namespace}
     </h1>
 
-    @if(podsList.getItems.size > 0) {
-        <ul class="content">
-        @for(pod: Pod <- podsList.getItems) {
-            <li>@pod.getMetadata.getName</li>
-        }
-        </ul>
+    @if(podsList.getItems.size >0) {
+       <div class="pods-wrapper">
+                <table class="listing-table" id="available-pods-table">
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Phase</th>
+                        <th>Containers</th>
+                        <th>Restarts</th>
+                        <th>Host IP</th>
+                        <th>Pod IP</th>
+                    </tr>
+                    @for(pod: Pod <- podsList.getItems) {
+                        <tr>
+                            <td id="pod_checkbox_@counter">
+                                <input id="pod_checked_@counter" type="checkbox" name="checked-pod"/>&nbsp;
+                            </td>
+                            <td id="pod_name_@counter">
+                                <label for="pod_checked_@counter">@pod.getMetadata.getName</label>
+                            </td>
+                            <td id="pod_phase_@counter">@pod.getStatus.getPhase</td>
+                            <td id="pod_containersCount_@counter">@pod.getSpec.getContainers.size()</td>
+                            <td id="pod_restartCount_@counter">
+                                @for(status: ContainerStatus <- pod.getStatus.getContainerStatuses){
+                                    @{restartCount+=status.getRestartCount}
+                                }
+                                @restartCount
+                            </td>
+                            <td id="pod_hostIP_@counter">@pod.getStatus.getHostIP</td>
+                            <td id="pod_ip_@counter">@pod.getStatus.getPodIP</td>
+                        </tr>
+                        @{restartCount=0}
+                        @{counter += 1}
+                    }
+                </table>
+                <input type="button" id="btn-deployments-delete" class="table-action-button" value="Delete">
     } else {
         <p>There are no pods in this deployment.</p>
     }
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/tables.css")">
+
 }

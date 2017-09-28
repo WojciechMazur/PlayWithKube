@@ -1,11 +1,51 @@
 @import io.fabric8.kubernetes.api.model.Namespace
+@import io.fabric8.kubernetes.api.model.extensions.Deployment
+@import io.fabric8.kubernetes.api.model.Pod
 @(namespaces: List[Namespace])
+@import java.math.BigInteger; var counter=0; var podCounter=0
+@import _root_.services.kube.Deployments.listDeployments
+@import _root_.services.kube.Pods.listPodsInDeployment
 
 @mainLayout("Namespaces") {
     <h1 id="title">Namespaces: </h1>
-    <ul class="content">
-    @for(ns <- namespaces) {
-        <li><a href="/namespaces/@ns.getMetadata.getName/deployments">@ns.getMetadata.getName</a></li>
+
+    @if(namespaces.nonEmpty) {
+            <div class="namespaces-wrapper">
+                <table class="listing-table" id="available-namespaces-table">
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Phase</th>
+                        <th>Deployments</th>
+                        <th>Pods</th>
+                    </tr>
+                    @for(namespace: Namespace <- namespaces) {
+                        <tr>
+                            <td id="namespace_checkbox_@counter">
+                                <input id="namespace_checked_@counter" type="checkbox" name="checked-namespaces"/>&nbsp;
+                            </td>
+                            <td id="namespace_name_@counter">
+                                <label for="namespace_checked_@counter">
+                                    <a href="@routes.HomeController.listDeploymentsInNamespace(namespace.getMetadata.getName)">
+                                        @namespace.getMetadata.getName
+                                    </a>
+                                </label>
+                            </td>
+                            <td id="namespace_phase_@counter">@namespace.getStatus.getPhase</td>
+                            <td id="namespace_deplyomentsCount_@counter">@listDeployments(namespace.getMetadata.getName).getItems.size()</td>
+                            <td id="namespece_podsCount_@counter">
+                                @for(deployment:Deployment  <- listDeployments(namespace.getMetadata.getName).getItems) {
+                                    @{podCounter += listPodsInDeployment(deployment.getMetadata.getName, namespace.getMetadata.getName).getItems.size()}
+                                }
+                                @podCounter
+                            </td>
+                        </tr>
+                        @{podCounter=0}
+                        @{counter += 1}
+                    }
+                </table>
+                <input type="button" id="btn-deployments-delete" class="table-action-button" value="Delete">
+            </div>
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/tables.css")">
     }
-    </ul>
 }

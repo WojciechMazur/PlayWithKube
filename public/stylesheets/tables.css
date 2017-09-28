@@ -2,10 +2,9 @@
     width: 1080px;
 }
 
-.listing-table table {
+.listing-table  {
     font-family: arial, sans-serif;
     border-collapse: collapse;
-    width: 100%;
 }
 
 .listing-table td, th {
@@ -24,3 +23,20 @@
 a{
     text-decoration: none;
 }
+
+.table-action-button{
+    display: block;
+    margin: 5px;
+    border-radius: 5px;
+    width: 100px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+th{text-align: center}
+td[id^=namespace_phase_],
+td[id^=namespece_podsCount],
+td[id^=namespace_deplyomentsCount],
+td[id^=pod_containersCount_],
+td[id^=pod_restartCount_],
+td[id^=deployment_replicas_]{text-align: center}
